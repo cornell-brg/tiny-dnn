@@ -14,7 +14,7 @@ class timer
 {
  public:
     timer():  t1(std::chrono::high_resolution_clock::now()){};
-    float_t elapsed(){return std::chrono::duration_cast<std::chrono::duration<float_t>>(std::chrono::high_resolution_clock::now() - t1).count();}
+    float_t elapsed(){return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - t1).count();}
     void restart(){t1 = std::chrono::high_resolution_clock::now();}
     void start(){t1 = std::chrono::high_resolution_clock::now();}
     void stop(){t2 = std::chrono::high_resolution_clock::now();}
