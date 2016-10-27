@@ -35,7 +35,7 @@ In order to run example_mnist_test (which is test.cpp),
 make example_mnist_test
 ```
 tiny-dnn allows for trained networks to be saved and loaded. You can find the 
-trained model for mnist in tiny-dnn/github/examples/mnist. The
+trained model for mnist in tiny-dnn/examples/mnist. The
 trained model is called LeNet-model.
 
 ## Running mnist example
@@ -67,7 +67,7 @@ directory bvlc (files from the Berkeley Vision and Learning Center):
 tiny-dnn/examples/caffe_converter/bvlc
 ```
 In order to get the remaining files for the pre-trained model,
-run the scripts below from the home tiny-dnn directory. The first script takes 
+run the scripts below from the tiny-dnn home directory. The first script takes 
 several minutes to complete.
 ```
 ./scripts/download_model_binary.py examples/caffe_converter/bvlc
@@ -92,8 +92,3 @@ n02124075 Egyptian cat,0.148082
 n02119022 red fox, Vulpes vulpes,0.12278
 n02119789 kit fox, Vulpes macrotis,0.071408
 ```
-Note, tiny-dnn says that the caffe-converter only supports networks without 
-branch.
-Since the "branch" terminology is used in reference to graph networks in the
-"How To" section, this may mean that caffe-converter does not work for graph 
-networks, such as DenseNet, without modification. 
