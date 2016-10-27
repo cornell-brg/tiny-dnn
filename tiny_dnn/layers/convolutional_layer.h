@@ -78,7 +78,7 @@ class convolutional_layer : public feedforward_layer<Activation> {
                         bool           has_bias = true,
                         cnn_size_t     w_stride = 1,
                         cnn_size_t     h_stride = 1,
-                        backend_t      backend_type = backend_t::tiny_dnn,
+                        backend_t      backend_type = core::default_engine(),
                         backend_params b_params = backend_params())
         : convolutional_layer(in_width, in_height, window_size, window_size, in_channels, out_channels,
                               connection_table(), pad_type, has_bias, w_stride, h_stride,
@@ -111,7 +111,7 @@ class convolutional_layer : public feedforward_layer<Activation> {
                         bool           has_bias = true,
                         cnn_size_t     w_stride = 1,
                         cnn_size_t     h_stride = 1,
-                        backend_t      backend_type = backend_t::tiny_dnn,
+                        backend_t      backend_type = core::default_engine(),
                         backend_params b_params = backend_params())
         : convolutional_layer(in_width, in_height, window_width, window_height, in_channels, out_channels,
             connection_table(), pad_type, has_bias, w_stride, h_stride,
@@ -144,7 +144,7 @@ class convolutional_layer : public feedforward_layer<Activation> {
                         bool                    has_bias = true,
                         cnn_size_t              w_stride = 1,
                         cnn_size_t              h_stride = 1,
-                        backend_t      backend_type = backend_t::tiny_dnn,
+                        backend_t      backend_type = core::default_engine(),
                         backend_params b_params = backend_params())
         : convolutional_layer(in_width, in_height, window_size, window_size, in_channels, out_channels,
             connection_table, pad_type, has_bias, w_stride, h_stride,
@@ -179,7 +179,7 @@ class convolutional_layer : public feedforward_layer<Activation> {
                         bool                    has_bias = true,
                         cnn_size_t              w_stride = 1,
                         cnn_size_t              h_stride = 1,
-                        backend_t      backend_type = backend_t::tiny_dnn,
+                        backend_t      backend_type = core::default_engine(),
                         backend_params b_params = backend_params())
         : Base(std_input_order(has_bias)) {
             conv_set_params(shape3d(in_width, in_height, in_channels),
@@ -392,7 +392,7 @@ class convolutional_layer : public feedforward_layer<Activation> {
 
     template <class Archive>
     void serialize(Archive & ar) {
-        serialize_prolog(ar, this);
+        layer::serialize_prolog(ar);
         ar(cereal::make_nvp("in_size", params_.in),
             cereal::make_nvp("window_width", params_.weight.width_),
             cereal::make_nvp("window_height", params_.weight.height_),
@@ -610,5 +610,3 @@ private:
 };
 
 }  // namespace tiny_dnn
-
-CNN_REGISTER_LAYER_SERIALIZER_WITH_ACTIVATIONS(tiny_dnn::convolutional_layer, conv);

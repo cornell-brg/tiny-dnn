@@ -32,7 +32,9 @@
 
 using namespace tiny_dnn::activation;
 
+#ifndef CNN_NO_SERIALIZATION
 #include "test_serialization.h"
+#endif
 #include "test_network.h"
 #include "test_average_pooling_layer.h"
 // TODO(yida): fix broken test
@@ -63,6 +65,8 @@ using namespace tiny_dnn::activation;
 #ifdef CNN_USE_CAFFE_CONVERTER
 #include "test_caffe_converter.h"
 #endif
+
+#include "test_image.h"
 
 int main(void) {
     return RUN_ALL_TESTS();

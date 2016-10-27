@@ -82,6 +82,7 @@ class layer : public node {
               out_type_(out_type) {
         weight_init_ = std::make_shared<weight_init::xavier>();
         bias_init_ = std::make_shared<weight_init::constant>();
+        trainable_ = true;
     }
 
     layer(const layer&) = default;
@@ -108,7 +109,6 @@ class layer : public node {
     // getter
 
     bool parallelize() const { return parallelize_; }
-    bool initialized() const { return initialized_; }
 
     // TODO(edgar): Deprecated: use the below method 
     core::backend_t backend_type() const {
@@ -268,6 +268,9 @@ class layer : public node {
 
     std::vector<vector_type> out_types() const { return out_type_; }
 
+    void set_trainable(bool trainable) { trainable_ = trainable; }
+
+    bool trainable() const { return trainable_; }
 
     /**
      * return output value range
@@ -497,6 +500,11 @@ class layer : public node {
     }
 
     void init_weight() {
+        if (!trainable_) {
+            initialized_ = true;
+            return;
+        }
+
         for (cnn_size_t i = 0; i < in_channels_; i++) {
             switch (in_type_[i]) {
                 case vector_type::weight:
@@ -523,7 +531,7 @@ class layer : public node {
     void update_weight(optimizer *o, cnn_size_t batch_size) {
         float_t rcp_batch_size = float_t(1) / float_t(batch_size);
         for (size_t i = 0; i < in_type_.size(); i++) {
-            if (is_trainable_weight(in_type_[i])) {
+            if (trainable() && is_trainable_weight(in_type_[i])) {
                 vec_t diff;
                 vec_t& target = *get_weight_data(i);
 
@@ -579,27 +587,13 @@ class layer : public node {
     * generate layer from cereal's Archive
     **/
     template <typename InputArchive>
-    static std::shared_ptr<layer> load_layer(InputArchive & ia) {
-        typedef typename cereal::traits::detail::get_output_from_input<InputArchive>::type OutputArchive;
-
-        start_loading_layer(ia);
-
-        std::string p;
-        ia(cereal::make_nvp("type", p));
-        auto l = serialization_helper<InputArchive, OutputArchive>::get_instance().load(p, ia);
-
-        finish_loading_layer(ia);
-
-        return l;
-    }
+    static std::shared_ptr<layer> load_layer(InputArchive & ia);
 
     template <typename OutputArchive>
-    static void save_layer(OutputArchive & oa, const layer& l) {
-        typedef typename cereal::traits::detail::get_input_from_output<OutputArchive>::type InputArchive;
+    static void save_layer(OutputArchive & oa, const layer& l);
 
-        std::string name = serialization_helper<InputArchive, OutputArchive>::get_instance().serialization_name(typeid(l));
-        serialization_helper<InputArchive, OutputArchive>::get_instance().save(name, oa, &l);
-    }
+    template <class Archive>
+    void serialize_prolog(Archive & ar);
 
  protected:
     bool initialized_;
@@ -615,6 +609,7 @@ class layer : public node {
     Device* device_ptr_ = nullptr;
 
  private:
+    bool trainable_;
     std::shared_ptr<weight_init::function> weight_init_;
     std::shared_ptr<weight_init::function> bias_init_;
 

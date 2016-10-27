@@ -140,8 +140,34 @@ TEST(network, add) {
     network<sequential> net;
     net << convolutional_layer<identity>(32, 32, 5, 3, 6, padding::same);
 
-    EXPECT_EQ(net.out_data_size(), cnn_size_t(32*32*6));
-    //EXPECT_EQ(net.depth(), 1);
+    EXPECT_EQ(net.depth(), static_cast<cnn_size_t>(1));
+}
+
+TEST(network, manual_init) {
+    // initializing weights directly
+    network<sequential> net;
+    net << convolutional_layer<identity>(3, 3, 3, 1, 1)
+        << fully_connected_layer<softmax>(1, 2, false);
+
+    adagrad opt;
+
+    vec_t* c1_w = net[0]->weights()[0];
+    vec_t* c1_b = net[0]->weights()[1];
+    vec_t* f1_w = net[1]->weights()[0];
+
+    EXPECT_EQ(c1_w->size(), static_cast<cnn_size_t>(9));
+    EXPECT_EQ(c1_b->size(), static_cast<cnn_size_t>(1));
+    EXPECT_EQ(f1_w->size(), static_cast<cnn_size_t>(2));
+
+    *c1_w = { 0,1,2,3,4,5,6,7,8 };
+    *c1_b = { 1 };
+    *f1_w = { 1,2 };
+
+    // check if the training and predicting works
+    // https://github.com/tiny-dnn/tiny-dnn/issues/330
+    net.predict({ 1,1,1,1,1,1,1,1,1 });
+
+    net.train<mse, adagrad>(opt, tensor_t{ {1,1,1,1,1,1,1,1,1} }, tensor_t{ {1,2} }, 1, 1);
 }
 
 // TODO(nyanp): check out values again since the routine it's a bit sensitive
@@ -457,7 +483,7 @@ TEST(network, gradient_check5) { // softmax - cross-entropy
     nn.init_weight();
     EXPECT_TRUE(nn.gradient_check<loss_func>(test_data.first,
                                              test_data.second,
-                                             1e-1, GRAD_CHECK_RANDOM));
+                                             1e-1f, GRAD_CHECK_RANDOM));
 }
 
 TEST(network, gradient_check6) { // sigmoid - cross-entropy
@@ -520,6 +546,46 @@ TEST(network, read_write)
         tiny_dnn::float_t eps = std::abs(res1[i]) * 1e-5f;
         ASSERT_TRUE(std::abs(res1[i] - res2[i]) < eps);
     }
+}
+
+TEST(network, trainable) {
+    auto net = make_mlp<sigmoid>({ 2,3,2,1 }); // fc(2,3) - fc(3,2) - fc(2,1)
+
+    // trainable=false, or "freeze" 2nd layer fc(3,2)
+    net[1]->set_trainable(false);
+
+    vec_t w0 = { 0,1,2,3,4,5 };
+    vec_t w1 = { 6,7,8,9,8,7 };
+    vec_t w2 = { 6,5 };
+
+    *net[0]->weights()[0] = { 0,1,2,3,4,5 };
+    *net[1]->weights()[0] = { 6,7,8,9,8,7 };
+    *net[2]->weights()[0] = { 6,5 };
+
+    adam a;
+
+    net.init_weight();
+
+    auto w0_standby = *net[0]->weights()[0];
+    auto w1_standby = *net[1]->weights()[0];
+    auto w2_standby = *net[2]->weights()[0];
+
+    EXPECT_NE(w0, w0_standby);
+    EXPECT_EQ(w1, w1_standby);
+    EXPECT_NE(w2, w2_standby);
+
+    std::vector<vec_t> data{ {1,0}, {0,2} };
+    std::vector<vec_t> out{ {2}, {1} };
+
+    net.fit<mse>(a, data, out, 1, 1);
+
+    auto w0_after_update = *net[0]->weights()[0];
+    auto w1_after_update = *net[1]->weights()[0];
+    auto w2_after_update = *net[2]->weights()[0];
+
+    EXPECT_NE(w0, w0_after_update);
+    EXPECT_EQ(w1, w1_after_update);
+    EXPECT_NE(w2, w2_after_update);
 }
 
 } // namespace tiny-dnn

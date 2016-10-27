@@ -49,7 +49,7 @@ public:
     fully_connected_layer(cnn_size_t     in_dim,
                           cnn_size_t     out_dim,
                           bool           has_bias = true,
-                          backend_t      backend_type = backend_t::tiny_dnn)
+                          backend_t      backend_type = core::default_engine())
             : Base(std_input_order(has_bias)) {
         set_params(in_dim, out_dim, has_bias);
         init_backend(backend_type);
@@ -137,7 +137,7 @@ public:
 
     template <class Archive>
     void serialize(Archive & ar) {
-        serialize_prolog(ar, this);
+        layer::serialize_prolog(ar);
         ar(cereal::make_nvp("in_size", params_.in_size_),
            cereal::make_nvp("out_size", params_.out_size_),
            cereal::make_nvp("has_bias", params_.has_bias_));
@@ -180,5 +180,3 @@ protected:
 };
 
 } // namespace tiny_dnn
-
-CNN_REGISTER_LAYER_SERIALIZER_WITH_ACTIVATIONS(tiny_dnn::fully_connected_layer, fully_connected);

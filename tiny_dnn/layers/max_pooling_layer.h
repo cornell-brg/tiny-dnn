@@ -62,7 +62,7 @@ class max_pooling_layer : public feedforward_layer<Activation> {
                       cnn_size_t     in_height,
                       cnn_size_t     in_channels,
                       cnn_size_t     pooling_size,
-                      backend_t      backend_type = backend_t::tiny_dnn,
+                      backend_t      backend_type = core::default_engine(),
                       backend_params b_params = backend_params())
             : max_pooling_layer(in_width, in_height, in_channels, pooling_size, pooling_size, backend_type, b_params) {
     }
@@ -70,7 +70,7 @@ class max_pooling_layer : public feedforward_layer<Activation> {
     max_pooling_layer(const shape3d& in_shape,
                       cnn_size_t     pooling_size,
                       cnn_size_t     stride,
-                      backend_t      backend_type = backend_t::tiny_dnn,
+                      backend_t      backend_type = core::default_engine(),
                       backend_params b_params = backend_params())
         : max_pooling_layer(in_shape.width_, in_shape.height_, in_shape.depth_, pooling_size, stride, backend_type, b_params) {
     }
@@ -172,7 +172,7 @@ class max_pooling_layer : public feedforward_layer<Activation> {
 
     template <class Archive>
     void serialize(Archive & ar) {
-        serialize_prolog(ar, this);
+        layer::serialize_prolog(ar);
         ar(cereal::make_nvp("in_size", params_.in_), cereal::make_nvp("pool_size", params_.pool_size_), cereal::make_nvp("stride", params_.stride_));
     }
 
@@ -293,4 +293,3 @@ private:
 
 }  // namespace tiny_dnn
 
-CNN_REGISTER_LAYER_SERIALIZER_WITH_ACTIVATIONS(tiny_dnn::max_pooling_layer, maxpool);

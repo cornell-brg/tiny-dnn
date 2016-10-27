@@ -15,9 +15,6 @@ cache:
   pip: true
   directories:
     - $HOME/.pip-cache/
-    - $HOME/opencv_3_1_0
-    - $HOME/PeachPy
-    - $HOME/NNPACK
 
 addons:
   apt:
@@ -32,38 +29,27 @@ addons:
       - git
       # Optional dependencies
       - libtbb-dev
-      # OpenCV dependencies
-      # TODO: revise if are needed
-      - libjpeg8-dev
-      - libtiff4-dev
-      - libjasper-dev
-      - libpng12-dev 
-      - libgtk2.0-dev
-      - libavcodec-dev
-      - libavformat-dev
-      - libswscale-dev
-      - libv4l-dev
-      - libatlas-base-dev
-      - gfortran
-      # Coveralls dependencies
+      # coveralls dependencies
       - gem
       - lcov
 
 branches:
   only:
     - master
-    - feat/generic-computational-graph
 env:
   global:
+    - USE_TBB=ON
     - BUILD_TESTS=ON
     - BUILD_EXAMPLES=ON
- 
+    - COVERALLS=ON
+
   matrix:
-    - USE_SSE=OFF USE_AVX=OFF
-    - USE_SSE=ON  USE_AVX=ON
+    - USE_SSE=OFF USE_AVX=OFF USE_DOUBLE=OFF
+    - USE_SSE=ON  USE_AVX=ON USE_DOUBLE=OFF
+    - USE_SSE=ON  USE_AVX=ON USE_DOUBLE=ON
 
 matrix:
-  exclude: # On OSX g++ is a symlink to clang++ by default 
+  exclude: # On OSX g++ is a symlink to clang++ by default
     - os: osx
       compiler: gcc
 
@@ -80,29 +66,38 @@ install:
   - gem install coveralls-lcov
 
 before_script:
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+  - if [ "$TRAVIS_OS_NAME" == "linux" ] && [ "$CXX" == "g++-4.8" ]; then
       lcov --directory . --zerocounters;
+      cmake -DUSE_TBB=$USE_TBB
+            -DUSE_SSE=$USE_SSE
+            -DUSE_AVX=$USE_AVX
+            -DUSE_DOUBLE=$USE_DOUBLE
+            -DBUILD_TESTS=$BUILD_TESTS
+            -DCOVERALLS=$COVERALLS
+            -DBUILD_EXAMPLES=$BUILD_EXAMPLES .;
+    fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ] && [ "$CXX" == "clang++" ]; then
       cmake -DUSE_SSE=$USE_SSE
             -DUSE_AVX=$USE_AVX
             -DBUILD_TESTS=$BUILD_TESTS
-            -DCOVERALLS=ON
-            -DBUILD_EXAMPLES=$BUILD_EXAMPLES
-            -DOpenCV_DIR="$HOME/opencv_3_1_0/share/OpenCV" .;
+            -DBUILD_EXAMPLES=$BUILD_EXAMPLES .;
     fi
-  - if [ "$TRAVIS_OS_NAME" == "osx"   ]; then
-      cmake -DUSE_TBB=ON 
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+      cmake -DUSE_TBB=$USE_TBB
             -DUSE_AVX=OFF
             -DBUILD_TESTS=$BUILD_TESTS .;
     fi
-  
-script: make -j2 && ./test/tiny_dnn_test
+
+script:
+  - make -j2
+  - test/tiny_dnn_test
 
 after_success:
-  # send Coveralls log
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-      cd ${TRAVIS_BUILD_DIR};
+  - if [ "$TRAVIS_OS_NAME" == "linux" ] && [ "$CXX" == "g++-4.8" ]; then
       lcov --directory . --capture --output-file coverage.info;
-      lcov --remove coverage.info 'tests/*' '/usr/*' --output-file coverage.info;
+      lcov --remove coverage.info 'test/*' 'third_party/*' 'cereal/*' '/usr/*' --output-file coverage.info;
       lcov --list coverage.info;
-      coveralls-lcov coverage.info
+      coveralls-lcov --source-encoding=ISO-8859-1 coverage.info;
     fi
+  # coding style test
+  - bash -x .travis/cpplint_test.sh
