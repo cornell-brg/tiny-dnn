@@ -61,13 +61,13 @@ protobuf. The protobuf files (caffe_converter.bin and caffe.pb.cc) for tiny-dnn
 have already been set up. All that is required is a model file, trained file, 
 mean file, label file, and image file.
 
-As an example, the files for a pre-trained Caffe model are provided in the 
+As an example, some of the files for a pre-trained Caffe model are provided in the 
 directory bvlc (files from the Berkeley Vision and Learning Center):
 ```
 tiny-dnn/examples/caffe_converter/bvlc
 ```
-In order to get the pre-trained Caffe model and the ImageNet labels file (synset 
-file), run the scripts below from the home tiny-dnn directory. The first script takes 
+In order to get the remaining files for the pre-trained model,
+run the scripts below from the home tiny-dnn directory. The first script takes 
 several minutes to complete.
 ```
 ./scripts/download_model_binary.py examples/caffe_converter/bvlc
@@ -83,7 +83,8 @@ cd examples/caffe_converter/bvlc
 ```
 We can see the layers getting converted to tiny-dnn layers. At the end we can 
 see
-the predictions of the network on classifying the cat image.  ```
+the predictions of the network on classifying the cat image.  
+```
 Elapsed time(s): 8.6
 n02123045 tabby, tabby cat,0.331108
 n02123159 tiger cat,0.201654
