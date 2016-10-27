@@ -30,7 +30,8 @@ After running cmake, to see the available options for compilation, type:
 ```
 make help
 ```
-In order to run example_mnist_test (which is test.cpp), ```
+In order to run example_mnist_test (which is test.cpp), 
+```
 make example_mnist_test
 ```
 tiny-dnn allows for trained networks to be saved and loaded. You can find the 
