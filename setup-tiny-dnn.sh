@@ -1,7 +1,5 @@
 #!/usr/bin/env sh
 #
-#Tiny-dnn requires gcc 4.8+
-scl enable devtoolset-2 bash
 
 #Tbbvars
 export TBBROOT="/research/brg/install/bare-pkgs/x86_64-centos6/intel-tbb" #
@@ -22,3 +20,7 @@ else #
     export LD_LIBRARY_PATH="${tbb_bin}:$LD_LIBRARY_PATH" #
 fi #
  #
+
+# Tiny dnn requires gcc > 4.8
+# Sets gcc 4.8.2
+scl enable devtoolset-2 bash
